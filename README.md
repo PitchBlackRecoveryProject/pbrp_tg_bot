@@ -1,22 +1,16 @@
-# Joker
+# PBRP Bot
 A modular telegram Python bot running on python3 with an sqlalchemy database.
 
 Originally a simple group management bot with multiple admin features, it has evolved, becoming extremely modular and 
 simple to use.
 
-Can be found on telegram as [Joker](https://t.me/Joker_dabot).
-
-
-Join the [news channel](https://t.me/JokerHarleynews) if you just want to stay in the loop about new features or
-announcements.
-
-Alternatively, [find me on telegram](https://t.me/YasirSiddiqui)!.
+Can be found on telegram as [PBRP Bot](https://t.me/pbrp_bot).
 
 ## Starting the bot.
 
 Once you've setup your database and your configuration (see below) is complete, simply run:
 
-`python3 -m tg_bot` or `python -m tg_bot`
+`python3 -m tg_bot`
 
 
 ## Setting up the bot (Read this before trying to use!):
