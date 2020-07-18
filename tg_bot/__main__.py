@@ -48,7 +48,10 @@ And the following:
 """.format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll commands can be used with /.")
 
 DONATE_STRING = """
-SooN
+Patreon is up!
+If you like our Project & wanna help us👍
+
+https://www.patreon.com/pitchblackrecovery
 """
 
 IMPORTED = {}
