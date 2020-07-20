@@ -358,7 +358,38 @@ def bootleggers(bot: Bot, update: Update):
     message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 
+@run_async
+def pbrp(bot: Bot, update: Update):
+	reply_text = ""
+	message = update.effective_message
+	device = message.text[len('/pbrp '):]
+	fetch = get(f'https://us-central1-pbrp-prod.cloudfunctions.net/device?device={device}')
+
+	if fetch.status_code == 200:
+		response = fetch.json()
+		devicename = response['full_name']
+		filename = response['latest_filename']
+		url = response['latest_sf_link']
+		md5 = response['latest_md5']
+		maintainer = response['maintainer']
+		buildsize = response['latest_size']
+		version = response['latest_version']
+
+		reply_text = (f"*PBRP for {devicename}*\n"
+					  f"*Device Maintainer:* {maintainer}\n"
+					  f"*Download:* [{filename}]({url})\n"
+					  f"*MD5*: `{md5}`\n"
+					  f"*Build size:* `{buildsize}`\n"
+					  f"*Version:* `{version}`")
+	elif fetch.status_code == 404 or fetch.status_code == 500:
+		reply_text = "Device not found."
+
+	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+
 __help__ = """
+ *Recoveries*
+ - /pbrp <device>: Gets the latest build of PBRP.
  *Device Specific Rom*
  - /pearl <device>: Get the Pearl Rom
  - /havoc <device>: Get the Havoc Rom
@@ -393,6 +424,7 @@ DOTOS_HANDLER = DisableAbleCommandHandler("dotos", dotos, admin_ok=True)
 PIXYS_HANDLER = DisableAbleCommandHandler("pixys", pixys, admin_ok=True)
 LOS_HANDLER = DisableAbleCommandHandler("los", los, admin_ok=True)
 BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers", bootleggers, admin_ok=True)
+PBRP_HANDLER = DisableAbleCommandHandler("pbrp", pbrp, admin_ok=True)
 
 dispatcher.add_handler(GETAEX_HANDLER)
 dispatcher.add_handler(MIUI_HANDLER)
@@ -408,3 +440,4 @@ dispatcher.add_handler(DOTOS_HANDLER)
 dispatcher.add_handler(PIXYS_HANDLER)
 dispatcher.add_handler(LOS_HANDLER)
 dispatcher.add_handler(BOOTLEGGERS_HANDLER)
+dispatcher.add_handler(PBRP_HANDLER)
