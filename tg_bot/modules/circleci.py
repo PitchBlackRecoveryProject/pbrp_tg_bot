@@ -68,7 +68,7 @@ def trigger(bot: Bot, update: Update, args: List[str]):
 	if fetch.status_code == 201:
 		reply_text = f'Successfully triggered Circle CI pipeline for {args[0]}/{args[1]}. Good Luck with that!'
 	else:
-		reply_text = f'There is some error making request to Circle CI. Contact @manjotsidhu'
+		reply_text = f'There is some error making request to Circle CI. Contact @manjotsidhu. Here are the logs: ```\n{fetch.json()}```'
 
 	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
