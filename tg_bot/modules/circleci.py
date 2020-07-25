@@ -81,6 +81,6 @@ __mod_name__ = "Circle CI"
 
 
 
-CIRCLECI_TRIGGER_HANDLER = DisableAbleCommandHandler("trigger", trigger, pass_args=True, admin_ok=True)
+CIRCLECI_TRIGGER_HANDLER = DisableAbleCommandHandler("trigger", trigger, pass_args=True, filters=CustomFilters.sudo_filter)
 
 dispatcher.add_handler(CIRCLECI_TRIGGER_HANDLER)
