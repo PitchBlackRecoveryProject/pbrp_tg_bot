@@ -90,7 +90,7 @@ def ghci(bot: Bot, update: Update, args: List[str]):
 	project_slug = project_slug_device_tree(args[1], args[2])
 	body = {'ref': args[3], 'inputs': { 'DEPLOY_TYPE': args[0], 'ChangeLogs': args[4]}}
 
-	fetch = post(f'https://api.github.com/repos/{project_slug}/actions/workflows/PBRP.yml/dispatches', json=body, headers=ghci_headers())
+	fetch = post(f'https://api.github.com/repos/{project_slug}/actions/workflows/pbrp-organization-ci.yml/dispatches', json=body, headers=ghci_headers())
 			
 	if fetch.status_code == 204:
 		reply_text = f'Successfully triggered {args[0]} build for {args[1]}/{args[2]}. Good Luck with that!'
