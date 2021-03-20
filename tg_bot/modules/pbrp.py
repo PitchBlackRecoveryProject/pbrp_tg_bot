@@ -5,6 +5,7 @@ import random
 import time
 import pyowm
 import os
+import re
 from pyowm import timeutils, exceptions
 from datetime import datetime
 from typing import Optional, List
@@ -16,7 +17,7 @@ from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
-from tg_bot.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin_no_reply, user_admin
+from tg_bot.modules.helper_funcs.chat_status import is_user_admin, is_sudo_user, bot_admin, user_admin_no_reply, user_admin
 from tg_bot import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER, LOGGER
 from tg_bot.__main__ import STATS, USER_INFO
 from tg_bot.modules.disable import DisableAbleCommandHandler
@@ -76,19 +77,29 @@ def circleci(bot: Bot, update: Update, args: List[str]):
 
 	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
-@user_admin
 @run_async
 def ghci(bot: Bot, update: Update, args: List[str]):
 
+	privilege = is_sudo_user(update.effective_user.id)
+	privilege = privilege or (update.effective_chat.id == -1001228903553)
+
+	if not privilege:
+		update.effective_message.reply_text("You are not allowed to run this command here!")
+		return
+
 	message = update.effective_message
 	reply_text = ""
+	changelog = ""
 	
-	if len(args) < 5:
-		update.effective_message.reply_text("Please specify correct parameters. /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog]")
+	if len(args) < 4:
+		update.effective_message.reply_text("Please specify correct parameters. /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog (multi-line support)]")
 		return
+	
+	if len(args) > 4:
+		changelog = re.split(r'[^\s]+ [^\s]+ [^\s]+ [^\s]+ [^\s]+\s', message.text)[1]
 		
 	project_slug = project_slug_device_tree(args[1], args[2])
-	body = {'ref': args[3], 'inputs': { 'DEPLOY_TYPE': args[0], 'ChangeLogs': args[4]}}
+	body = {'ref': args[3], 'inputs': { 'DEPLOY_TYPE': args[0], 'ChangeLogs': changelog}}
 
 	fetch = post(f'https://api.github.com/repos/{project_slug}/actions/workflows/pbrp-organization-ci.yml/dispatches', json=body, headers=ghci_headers())
 			
@@ -102,15 +113,15 @@ def ghci(bot: Bot, update: Update, args: List[str]):
 
 __help__ = """
  - /circleci [vendor] [codename] [branch]: Triggers the pipeline for the device. If branch is not provided, default branch is used.
- - /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog]: Triggers a dispatch_workflow for the device.
+ - /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog (multi-line support)]: Triggers a dispatch_workflow for the device.
 """
 
 __mod_name__ = "PBRP CI/CD"
 
 
 
-CIRCLECI_TRIGGER_HANDLER = DisableAbleCommandHandler("circleci", circleci, pass_args=True, filters=CustomFilters.sudo_filter)
-GHCI_TRIGGER_HANDLER = DisableAbleCommandHandler("ghci", ghci, pass_args=True, filters=CustomFilters.sudo_filter)
+CIRCLECI_TRIGGER_HANDLER = DisableAbleCommandHandler("circleci", circleci, pass_args=True, filters=Filters.group)
+GHCI_TRIGGER_HANDLER = DisableAbleCommandHandler("ghci", ghci, pass_args=True, filters=Filters.group)
 
 
 dispatcher.add_handler(CIRCLECI_TRIGGER_HANDLER)
