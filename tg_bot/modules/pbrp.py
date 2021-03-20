@@ -83,12 +83,12 @@ def ghci(bot: Bot, update: Update, args: List[str]):
 	message = update.effective_message
 	reply_text = ""
 	
-	if len(args) < 4:
-		update.effective_message.reply_text("Please specify correct parameters. /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch]")
+	if len(args) < 5:
+		update.effective_message.reply_text("Please specify correct parameters. /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog]")
 		return
 		
 	project_slug = project_slug_device_tree(args[1], args[2])
-	body = {'ref': args[3], 'inputs': { 'DEPLOY_TYPE': args[0] }}
+	body = {'ref': args[3], 'inputs': { 'DEPLOY_TYPE': args[0], 'ChangeLogs': args[4]}}
 
 	fetch = post(f'https://api.github.com/repos/{project_slug}/actions/workflows/PBRP.yml/dispatches', json=body, headers=ghci_headers())
 			
@@ -102,7 +102,7 @@ def ghci(bot: Bot, update: Update, args: List[str]):
 
 __help__ = """
  - /circleci [vendor] [codename] [branch]: Triggers the pipeline for the device. If branch is not provided, default branch is used.
- - /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch]: Triggers a dispatch_workflow for the device.
+ - /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog]: Triggers a dispatch_workflow for the device.
 """
 
 __mod_name__ = "PBRP CI/CD"
