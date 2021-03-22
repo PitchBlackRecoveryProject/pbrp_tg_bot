@@ -96,7 +96,7 @@ def ghci(bot: Bot, update: Update, args: List[str]):
 		return
 	
 	if len(args) > 4:
-		changelog = re.split(r'[^\s]+ [^\s]+ [^\s]+ [^\s]+ [^\s]+\s', message.text)[1]
+		changelog = re.search(r'^\/ghci\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s?([\s\S]*)?$', message.text).group(1)
 		
 	project_slug = project_slug_device_tree(args[1], args[2])
 	body = {'ref': args[3], 'inputs': { 'DEPLOY_TYPE': args[0], 'ChangeLogs': changelog}}
