@@ -24,7 +24,7 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 
-from requests import get, post
+from requests import get, post, put
 
 # DO NOT DELETE THIS, PLEASE.
 # Made by @manjotsidhu on GitHub and Telegram.
@@ -111,18 +111,44 @@ def ghci(bot: Bot, update: Update, args: List[str]):
 	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 
+@run_async
+def ghinvite(bot: Bot, update: Update, args: List[str]):
+	message = update.effective_message
+	reply_text = ""
+	
+	if len(args) < 3:
+		update.effective_message.reply_text("Please specify correct parameters. /ghinvite [vendor] [codename] [username]")
+		return
+		
+	project_slug = project_slug_device_tree(args[0], args[1])
+	body = {'permission': 'push'}
+
+	fetch = put(f'https://api.github.com/repos/{project_slug}/collaborators/{args[2]}', json=body, headers=ghci_headers())
+			
+	if fetch.status_code == 201:
+		reply_text = f'Collaborator invitation for {args[0]}/{args[1]} has been sent to {args[2]}'
+	elif fetch.status_code == 204:
+		reply_text = f'{args[2]} is already a Collaborator!'
+	else:
+		reply_text = f'There is some error making request to GitHub Actions. Contact @manjotsidhu. Here are the logs: ```\n{fetch.json()}```'
+
+	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+
 __help__ = """
  - /circleci [vendor] [codename] [branch]: Triggers the pipeline for the device. If branch is not provided, default branch is used.
  - /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog (multi-line support)]: Triggers a dispatch_workflow for the device.
+ - /ghinvite [vendor] [codename] [username]: Only for SUDO_USERS, PBRP organization repository push access. 
 """
 
-__mod_name__ = "PBRP CI/CD"
-
+__mod_name__ = "PBRP Modules"
 
 
 CIRCLECI_TRIGGER_HANDLER = DisableAbleCommandHandler("circleci", circleci, pass_args=True, filters=Filters.group)
 GHCI_TRIGGER_HANDLER = DisableAbleCommandHandler("ghci", ghci, pass_args=True, filters=Filters.group)
+GHINVITE_TRIGGER_HANDLER = DisableAbleCommandHandler("ghinvite", ghinvite, pass_args=True, filters=CustomFilters.sudo_filter)
 
 
 dispatcher.add_handler(CIRCLECI_TRIGGER_HANDLER)
 dispatcher.add_handler(GHCI_TRIGGER_HANDLER)
+dispatcher.add_handler(GHINVITE_TRIGGER_HANDLER)
