@@ -121,7 +121,7 @@ def ghinvite(bot: Bot, update: Update, args: List[str]):
 		return
 		
 	project_slug = project_slug_device_tree(args[0], args[1])
-	body = {'permission': 'push'}
+	body = {'permission': 'maintain'}
 
 	fetch = put(f'https://api.github.com/repos/{project_slug}/collaborators/{args[2]}', json=body, headers=ghci_headers())
 			
