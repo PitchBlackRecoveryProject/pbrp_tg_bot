@@ -134,11 +134,36 @@ def ghinvite(bot: Bot, update: Update, args: List[str]):
 
 	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
+@run_async
+def ghrelease(bot: Bot, update: Update, args: List[str]):
+	message = update.effective_message
+	reply_text = ""
+	changelog = ""
+	
+	if len(args) < 6:
+		update.effective_message.reply_text("Please specify correct parameters. /ghrelease [TEST/BETA/OFFICIAL] [vendor] [codename] [bootable branch] [direct download ZIP link] [device PBRP org repo link] [changelog (multi-line support)]")
+		return
+	
+	if len(args) > 6:
+		changelog = re.search(r'^\/ghrelease\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s?([\s\S]*)?$', message.text).group(1)
+		
+	body = {'ref': 'main', 'inputs': { 'DEPLOY_TYPE': args[0], 'Vendor': args[1], 'CodeName': args[2], 'Branch': args[3], 'Link': args[4], 'DtLink': args[5], 'ChangeLogs': changelog}}
+
+	fetch = post(f'https://api.github.com/repos/PitchBlackRecoveryProject/DeployBuild/actions/workflows/deploy.yml/dispatches', json=body, headers=ghci_headers())
+			
+	if fetch.status_code == 204:
+		reply_text = f'Successfully Triggered for {args[1]}/{args[2]} To {args[0]} Release . Good Luck with that!'
+	else:
+		reply_text = f'There is some error making request to GitHub Actions. Contact @manjotsidhu. Here are the logs: ```\n{fetch.json()}```'
+
+	message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
 
 __help__ = """
  - /circleci [vendor] [codename] [branch]: Triggers the pipeline for the device. If branch is not provided, default branch is used.
  - /ghci [TEST/BETA/OFFICIAL] [vendor] [codename] [branch] [changelog (multi-line support)]: Triggers a dispatch_workflow for the device.
  - /ghinvite [vendor] [codename] [username]: Only for SUDO_USERS, PBRP organization repository push access. 
+ - /ghrelease [TEST/BETA/OFFICIAL] [vendor] [codename] [bootable branch] [direct download ZIP link] [device PBRP org repo link] [changelog (multi-line support)]: To Deploy Build To Channel From Direct Download ZIP Link
 """
 
 __mod_name__ = "PBRP Modules"
@@ -147,8 +172,9 @@ __mod_name__ = "PBRP Modules"
 CIRCLECI_TRIGGER_HANDLER = DisableAbleCommandHandler("circleci", circleci, pass_args=True, filters=Filters.group)
 GHCI_TRIGGER_HANDLER = DisableAbleCommandHandler("ghci", ghci, pass_args=True, filters=Filters.group)
 GHINVITE_TRIGGER_HANDLER = DisableAbleCommandHandler("ghinvite", ghinvite, pass_args=True, filters=CustomFilters.sudo_filter)
-
+GHRELEASE_TRIGGER_HANDLER = DisableAbleCommandHandler("ghrelease", ghrelease, pass_args=True, filters=CustomFilters.sudo_filter)
 
 dispatcher.add_handler(CIRCLECI_TRIGGER_HANDLER)
 dispatcher.add_handler(GHCI_TRIGGER_HANDLER)
 dispatcher.add_handler(GHINVITE_TRIGGER_HANDLER)
+dispatcher.add_handler(GHRELEASE_TRIGGER_HANDLER)
